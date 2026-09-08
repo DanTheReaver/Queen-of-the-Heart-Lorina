@@ -1,651 +1,668 @@
-import { logger } from '../utils/logger.js';
+// ==========================================
+// QUEEN LORINA BOT CONFIGURATION FILE
+// ==========================================
 
-export const botConfig = {
-  // =========================
-  // BOT PRESENCE (what users see under the bot name)
-  // =========================
-  // `status` options:
-  // - "online"    = green dot
-  // - "idle"      = yellow moon
-  // - "dnd"       = red do-not-disturb
-  // - "invisible" = appears offline
+module.org = { // Standard configuration module export
+  // ----------------------------------------
+  // 1. BOT PRESENCE & STATUS
+  // ----------------------------------------
   presence: {
-    // Current online state shown on Discord.
-    status: "online",
-
-    // Activity lines shown under the bot name.
-    // `type` number mapping from Discord:
-    // 0 = Playing
-    // 1 = Streaming
-    // 2 = Listening
-    // 3 = Watching
-    // 4 = Custom
-    // 5 = Competing
+    status: "dnd", // Options: "online", "idle", "dnd", "invisible"
     activities: [
       {
-        name: "Custom Status", // required by Discord API, not shown in the client
-        state: "stalking",     // this is what people actually see
-        type: 4,               // Custom
+        name: "Custom Status",
+        state: "👑 Her Royal Majesty • /slots, /fight, /profile, or /craft for Souls",
+        type: 4, // 4 = Custom Status
       },
     ],
   },
 
-  // =========================
-  // COMMAND BEHAVIOR
-  // =========================
-  commands: {
-    // Bot owner user IDs (comma-separated in OWNER_IDS env var).
-    // Owners can access owner/admin-level bot commands.
-    owners: process.env.OWNER_IDS?.split(",").map((id) => id.trim()).filter(Boolean) || [],
-
-    // Default wait time between command uses (in seconds).
-    defaultCooldown: 3,
-
-    // If true, old commands are removed before re-registering.
-    deleteCommands: false,
-
-    // Optional server ID retained for tutorial compatibility; not used for command registration.
-    testGuildId: process.env.TEST_GUILD_ID,
-
-    // When true (or MAINTENANCE_MODE=true), only bot owners can run commands.
-    maintenanceMode: process.env.MAINTENANCE_MODE === "true",
-
-    // Command prefix for text-based commands (e.g., "!" for "!ping").
-    // Supports both slash commands and prefix commands.
-    prefix: process.env.PREFIX || "!",
-  },
-
-  // =========================
-  // APPLICATIONS SYSTEM
-  // =========================
-  applications: {
-    // Default questions shown when someone fills out an application.
-    defaultQuestions: [
-      { question: "What is your name?", required: true },
-      { question: "How old are you?", required: true },
-      { question: "Why do you want to join?", required: true },
-    ],
-
-    // Embed colors by application status.
-    statusColors: {
-      pending: "#FFA500",
-      approved: "#00FF00",
-      denied: "#FF0000",
-    },
-
-    // How long users must wait before submitting another application (hours).
-    applicationCooldown: 24,
-
-    // Auto-delete denied applications after this many days.
-    deleteDeniedAfter: 7,
-
-    // Auto-delete approved applications after this many days.
-    deleteApprovedAfter: 30,
-
-    // Role IDs allowed to manage applications.
-    managerRoles: [], // Will be populated from environment or database
-  },
-
-  // =========================
-  // EMBED COLORS & BRANDING
-  // =========================
-  // IMPORTANT: This is the SINGLE SOURCE OF TRUTH for all bot colors
+  // ----------------------------------------
+  // 2. EMBEDS & COLOR BRANDING
+  // ----------------------------------------
   embeds: {
     colors: {
-      // Main brand colors.
-      primary: "#336699",
-      secondary: "#2F3136",
-
-      // Standard status colors for success/error/warning/info messages.
-      success: "#57F287",
-      error: "#ED4245",
-      warning: "#FEE75C",
-      info: "#3498DB",
-
-      // Neutral utility colors.
-      light: "#FFFFFF",
-      dark: "#202225",
-      gray: "#99AAB5",
-
-      // Discord-style palette shortcuts.
-      blurple: "#5865F2",
-      green: "#57F287",
-      yellow: "#FEE75C",
-      fuchsia: "#EB459E",
-      red: "#ED4245",
-      black: "#000000",
-
-      // Feature-specific colors.
-      giveaway: {
-        active: "#57F287",
-        ended: "#ED4245",
-      },
-      ticket: {
-        open: "#57F287",
-        claimed: "#FAA61A",
-        closed: "#ED4245",
-        pending: "#99AAB5",
-      },
-      economy: "#F1C40F",
-      birthday: "#E91E63",
-      moderation: "#9B59B6",
-
-      // Ticket priority color mapping.
-      priority: {
-        none: "#95A5A6",
-        low: "#3498db",
-        medium: "#2ecc71",
-        high: "#f1c40f",
-        urgent: "#e74c3c",
-      },
+      primary: "#800020",   // Royal Crimson / Velvet Red
+      secondary: "#1A0006", // Midnight Velvet Obsidian
+      gold: "#FFD700",      // Legendary / Royal Gold
+      mythic: "#A020F0",    // Mythic Void Purple
     },
     footer: {
-      // Default footer text used in bot embeds.
-      text: "Titan Bot",
-      // Footer icon URL (null = no icon).
+      text: "👑 Lorina's Royal Domain • Pledging absolute loyalty to Her Majesty",
       icon: null,
-    },
-    // Default thumbnail URL for embeds (null = no thumbnail).
-    thumbnail: null,
-    author: {
-      // Optional default embed author block.
-      name: null,
-      icon: null,
-      url: null,
     },
   },
 
-  // =========================
-  // ECONOMY SETTINGS
-  // =========================
+  // ----------------------------------------
+  // 3. CORE ECONOMY & REBIRTH MECHANICS
+  // ----------------------------------------
   economy: {
     currency: {
-      // Currency display name.
-      name: "coins",
-      // Plural display name.
-      namePlural: "coins",
-      // Currency symbol shown in balances.
-      symbol: "$",
+      name: "Soul",
+      namePlural: "Souls",
+      symbol: "🩸", // Crimson Soul Icon
     },
-
-    // Starting balance for new users.
-    startingBalance: 0,
-
-    // Maximum bank amount before upgrades (if upgrades are used).
-    baseBankCapacity: 100000,
-
-    // Daily reward amount.
-    dailyAmount: 100,
-
-    // Work command random payout range.
-    workMin: 10,
-    workMax: 100,
-
-    // Beg command random payout range.
-    begMin: 5,
-    begMax: 50,
-
-    // Command cooldowns (milliseconds).
-    cooldowns: {
-      daily: 24 * 60 * 60 * 1000,
-      work: 60 * 60 * 1000,
-      crime: 2 * 60 * 60 * 1000,
-      rob: 4 * 60 * 60 * 1000,
-    },
-
-    // Chance to succeed when robbing (0.4 = 40%).
-    robSuccessRate: 0.4,
-
-    // Jail time after failed rob (milliseconds).
-    // 3600000 = 1 hour.
-    robFailJailTime: 3600000,
-  },
-
-  // =========================
-  // SHOP SETTINGS
-  // =========================
-  // Add shop defaults here when needed.
-  shop: {
-
-  },
-
-  // =========================
-  // TICKET SYSTEM
-  // =========================
-  tickets: {
-    // Category ID where new tickets are created (null = no forced category).
-    defaultCategory: null,
-
-    // Role IDs allowed to manage/support tickets.
-    supportRoles: [],
-
-    // Priority options users/staff can assign.
-    priorities: {
-      none: {
-        emoji: "⚪",
-        color: "#95A5A6",
-        label: "None",
-      },
-      low: {
-        emoji: "🟢",
-        color: "#2ECC71",
-        label: "Low",
-      },
-      medium: {
-        emoji: "🟡",
-        color: "#F1C40F",
-        label: "Medium",
-      },
-      high: {
-        emoji: "🔴",
-        color: "#E74C3C",
-        label: "High",
-      },
-      urgent: {
-        emoji: "🚨",
-        color: "#E91E63",
-        label: "Urgent",
-      },
-    },
-
-    // Default priority for new tickets.
-    defaultPriority: "none",
-
-    // Category ID where closed tickets are archived.
-    archiveCategory: null,
-
-    // Channel ID where ticket logs are sent.
-    logChannel: null,
-  },
-
-  // =========================
-  // GIVEAWAY SETTINGS
-  // =========================
-  giveaways: {
-    // Default giveaway duration in milliseconds.
-    // 86400000 = 24 hours.
-    defaultDuration: 86400000,
-
-    // Allowed winner count range.
-    minimumWinners: 1,
-    maximumWinners: 10,
-
-    // Allowed giveaway duration range in milliseconds.
-    // 300000 = 5 minutes.
-    minimumDuration: 300000,
-    // 2592000000 = 30 days.
-    maximumDuration: 2592000000,
-
-    // Role IDs allowed to host giveaways.
-    allowedRoles: [],
-
-    // Role IDs that bypass giveaway restrictions.
-    bypassRoles: [],
-  },
-
-  // =========================
-  // BIRTHDAY SETTINGS
-  // =========================
-  birthday: {
-    // Role ID given to users on their birthday.
-    defaultRole: null,
-
-    // Channel ID where birthday announcements are posted.
-    announcementChannel: null,
-
-    // Timezone used to calculate birthday dates.
-    timezone: "UTC",
-  },
-
-  // =========================
-  // VERIFICATION SETTINGS
-  // =========================
-  verification: {
-    // Message shown when posting the verification panel.
-    defaultMessage: "Click the button below to verify yourself and gain access to the server!",
-
-    // Text on the verification button.
-    defaultButtonText: "Verify",
-
-    // Automatic verification behavior.
-    autoVerify: {
-      // How automatic verification decides who is auto-approved:
-      // - "none"        = everyone is auto-verified immediately
-      // - "account_age" = account must be older than set days
-      // - "server_size" = auto-verify everyone only in smaller servers
-      defaultCriteria: "none",
-
-      // Days used when `defaultCriteria` is `account_age`.
-      defaultAccountAgeDays: 7,
-
-      // Member count threshold used when `defaultCriteria` is `server_size`.
-      // Example: 1000 means auto-verify if server has fewer than 1000 members.
-      serverSizeThreshold: 1000,
-
-      // Allowed safety limits for account-age requirements.
-      // 1 = minimum day, 365 = maximum days.
-      minAccountAge: 1,
-      maxAccountAge: 365,
-
-      // If true, user receives a DM after verification.
-      sendDMNotification: true,
-
-      // Human-readable descriptions for each criteria mode.
-      criteria: {
-        account_age: "Account must be older than specified days",
-        server_size: "All users if server has less than 1000 members",
-        none: "All users immediately"
-      }
-    },
-
-    // Minimum time between verification attempts (milliseconds).
-    // 5000 = 5 seconds.
-    verificationCooldown: 5000,
-
-    // Maximum failed attempts allowed inside the time window below.
-    maxVerificationAttempts: 3,
-
-    // Time window for counting attempts (milliseconds).
-    // 60000 = 1 minute.
-    attemptWindow: 60000,
-
-    // In-memory safety limits (helps avoid unbounded memory growth).
-    maxCooldownEntries: 10000,
-    maxAttemptEntries: 10000,
-    // Cleanup frequency for cooldown/attempt maps (milliseconds).
-    // 300000 = 5 minutes.
-    cooldownCleanupInterval: 300000,
-    // Maximum metadata payload size for audit entries (bytes).
-    maxAuditMetadataBytes: 4096,
-    // Maximum number of audit entries kept in memory.
-    maxInMemoryAuditEntries: 1000,
-    // If true, log every verification action.
-    logAllVerifications: true,
-    // If true, preserve verification audit history.
-    keepAuditTrail: true,
-  },
-
-  // =========================
-  // WELCOME / GOODBYE MESSAGES
-  // =========================
-  welcome: {
-    // Welcome template posted when a user joins.
-    // Placeholders: {user}, {server}, {memberCount}
-    defaultWelcomeMessage:
-      "Welcome {user} to {server}! We now have {memberCount} members!",
-    // Goodbye template posted when a user leaves.
-    // Placeholders: {user}, {memberCount}
-    defaultGoodbyeMessage:
-      "{user} has left the server. We now have {memberCount} members.",
-    // Channel ID for welcome messages.
-    defaultWelcomeChannel: null,
-    // Channel ID for goodbye messages.
-    defaultGoodbyeChannel: null,
-  },
-
-  // =========================
-  // COUNTER CHANNELS
-  // =========================
-  counters: {
-    defaults: {
-      // Default naming/description templates for counter entries.
-      name: "{name} Counter",
-      description: "Server {name} counter",
-      // Channel type used for counters (typically "voice").
-      type: "voice",
-      // Channel name format. `{count}` is replaced automatically.
-      channelName: "{name}-{count}",
-    },
-    permissions: {
-      // Default denied permissions for the counter channel.
-      deny: ["VIEW_CHANNEL"],
-      // Default allowed permissions for the counter channel.
-      allow: ["VIEW_CHANNEL", "CONNECT", "SPEAK"],
-    },
-    messages: {
-      // Default response messages for counter actions.
-      created: "✅ Created counter **{name}**",
-      deleted: "🗑️ Deleted counter **{name}**",
-      updated: "🔄 Updated counter **{name}**",
-    },
-    types: {
-      // Built-in counter types and how each count is calculated.
-      members: {
-        name: "👥 Members",
-        description: "Total members in the server",
-        getCount: (guild) => guild.memberCount.toString(),
-      },
-      bots: {
-        name: "🤖 Bots",
-        description: "Total bot accounts in the server",
-        getCount: (guild) =>
-          guild.members.cache.filter((m) => m.user.bot).size.toString(),
-      },
-      members_only: {
-        name: "👤 Humans",
-        description: "Total human members (non-bots)",
-        getCount: (guild) =>
-          guild.members.cache.filter((m) => !m.user.bot).size.toString(),
-      },
-    },
-  },
-
-  // =========================
-  // GENERIC BOT MESSAGES
-  // =========================
-  messages: {
-    noPermission: "You do not have permission to use this command.",
-    cooldownActive: "Please wait {time} before using this command again.",
-    errorOccurred: "An error occurred while executing this command.",
-    missingPermissions:
-      "I am missing required permissions to perform this action.",
-    commandDisabled: "This command has been disabled.",
-    maintenanceMode: "The bot is currently in maintenance mode.",
-  },
-
-  // =========================
-  // FEATURE TOGGLES
-  // =========================
-  // Set any feature to `false` to disable it globally.
-  features: {
-    // Core systems.
-    economy: true,
-    leveling: true,
-    moderation: true,
-    logging: true,
-    welcome: true,
-
-    // Community engagement systems.
-    tickets: true,
-    giveaways: true,
-    birthday: true,
-    counter: true,
-
-    // Security and self-service systems.
-    verification: true,
-    reactionRoles: true,
-    joinToCreate: true,
-
-    // Utility/quality-of-life modules.
-    voice: true,
-    search: true,
-    tools: true,
-    utility: true,
-    community: true,
-    fun: true,
-    music: true,
-  },
-};
-
-export function validateConfig(config) {
-  const errors = [];
-
-  if (process.env.NODE_ENV !== 'production') {
-    logger.debug('Environment variables check:');
-    logger.debug('DISCORD_TOKEN exists:', !!process.env.DISCORD_TOKEN);
-    logger.debug('TOKEN exists:', !!process.env.TOKEN);
-    logger.debug('CLIENT_ID exists:', !!process.env.CLIENT_ID);
-    logger.debug('GUILD_ID exists:', !!process.env.GUILD_ID);
-    logger.debug('POSTGRES_HOST exists:', !!process.env.POSTGRES_HOST);
-    logger.debug('NODE_ENV:', process.env.NODE_ENV);
-  }
-
-  if (!process.env.DISCORD_TOKEN && !process.env.TOKEN) {
-    errors.push("Bot token is required (DISCORD_TOKEN or TOKEN environment variable)");
-  }
-
-  if (!process.env.CLIENT_ID) {
-    errors.push("Client ID is required (CLIENT_ID environment variable)");
-  }
-
-  if (process.env.NODE_ENV === 'production') {
-    // A full connection URL (DATABASE_URL / POSTGRES_URL) satisfies all Postgres
-    // requirements, matching how src/config/database/postgres.js resolves the pool config.
-    const hasConnectionUrl = Boolean(process.env.POSTGRES_URL || process.env.DATABASE_URL);
-
-    if (!hasConnectionUrl) {
-      if (!process.env.POSTGRES_HOST) {
-        errors.push("PostgreSQL connection is required in production (set DATABASE_URL/POSTGRES_URL, or POSTGRES_HOST)");
-      }
-      if (!process.env.POSTGRES_USER) {
-        errors.push("PostgreSQL user is required in production (set DATABASE_URL/POSTGRES_URL, or POSTGRES_USER)");
-      }
-      if (!process.env.POSTGRES_PASSWORD) {
-        errors.push("PostgreSQL password is required in production (set DATABASE_URL/POSTGRES_URL, or POSTGRES_PASSWORD)");
-      }
-    }
-  }
-
-  return errors;
-}
-
-const configErrors = validateConfig(botConfig);
-if (configErrors.length > 0) {
-  logger.error("Bot configuration errors:", configErrors.join("\n"));
-  if (process.env.NODE_ENV === "production") {
-    process.exit(1);
-  }
-}
-
-export const BotConfig = botConfig;
-
-const COMMAND_CATEGORY_FEATURE_MAP = {
-  birthday: "birthday",
-  community: "community",
-  economy: "economy",
-  fun: "fun",
-  giveaway: "giveaways",
-  jointocreate: "joinToCreate",
-  leveling: "leveling",
-  logging: "logging",
-  moderation: "moderation",
-  music: "music",
-  reaction_roles: "reactionRoles",
-  search: "search",
-  serverstats: "counter",
-  ticket: "tickets",
-  tools: "tools",
-  utility: "utility",
-  verification: "verification",
-  welcome: "welcome",
-};
-
-function normalizeCategoryKey(category) {
-  return String(category || "").trim().toLowerCase().replace(/\s+/g, "_");
-}
-
-export function getCommandPrefix() {
-  return botConfig.commands?.prefix ?? "!";
-}
-
-export function getBotOwners() {
-  return (botConfig.commands?.owners ?? [])
-    .map((id) => String(id).trim())
-    .filter(Boolean);
-}
-
-export function isBotOwner(userId) {
-  if (!userId) {
-    return false;
-  }
-
-  return getBotOwners().includes(String(userId));
-}
-
-export function isMaintenanceMode() {
-  return botConfig.commands?.maintenanceMode === true;
-}
-
-export function getBotMessage(key, replacements = {}) {
-  let message = botConfig.messages?.[key] || key;
-
-  for (const [placeholder, value] of Object.entries(replacements)) {
-    message = message.replace(new RegExp(`\\{${placeholder}\\}`, "g"), String(value));
-  }
-
-  return message;
-}
-
-export function isFeatureEnabled(featureKey) {
-  if (!featureKey) {
-    return true;
-  }
-
-  return botConfig.features?.[featureKey] !== false;
-}
-
-export function isCommandCategoryEnabled(category) {
-  const normalized = normalizeCategoryKey(category);
-
-  if (!normalized || normalized === "core") {
-    return true;
-  }
-
-  const featureKey = COMMAND_CATEGORY_FEATURE_MAP[normalized];
-  if (!featureKey) {
-    return true;
-  }
-
-  return isFeatureEnabled(featureKey);
-}
-
-export function getApplicationStatusColor(status) {
-  const colors = botConfig.applications?.statusColors || {};
-  const hex = colors[status];
-  return hex ? getColor(hex) : getColor(status === "approved" ? "success" : status === "denied" ? "error" : "warning");
-}
-
-export function getDefaultApplicationQuestions() {
-  return (botConfig.applications?.defaultQuestions || []).map((entry) =>
-    typeof entry === "string" ? entry : entry.question,
-  ).filter(Boolean);
-}
-
-export function getColor(path, fallback = "#99AAB5") {
-  
-  if (typeof path === "number") return path;
-  if (typeof path === "string" && path.startsWith("#")) {
+    startingBalance: 1000,
     
-    return parseInt(path.replace("#", ""), 16);
-  }
-  const result = path
-    .split(".")
-    .reduce(
-      (obj, key) => (obj && obj[key] !== undefined ? obj[key] : fallback),
-      botConfig.embeds.colors,
-    );
-  
-  if (typeof result === "string" && result.startsWith("#")) {
-    return parseInt(result.replace("#", ""), 16);
-  }
-  return result;
-}
+    // Command: /daily
+    daily: {
+      enabled: true,
+      cooldown: 86400, // 24 hours
+      rewardMin: 5000,
+      rewardMax: 15000,
+      streakMultiplier: 0.10, // +10% bonus Souls per consecutive daily claim (up to 7 days)
+    },
 
-export function getRandomColor() {
-  const colors = Object.values(botConfig.embeds.colors).flatMap((color) =>
-    typeof color === "string" ? color : Object.values(color),
-  );
-  return colors[Math.floor(Math.random() * colors.length)];
-}
+    // Command: /weekly
+    weekly: {
+      enabled: true,
+      cooldown: 604800, // 7 days
+      rewardMin: 50000,
+      rewardMax: 150000,
+    },
 
-export default botConfig;
+    // Command: /steal (DISABLED - Prevent player frustration)
+    steal: {
+      enabled: false,
+      cooldown: 0,
+      successRate: 0.0,
+      maxPercentSteal: 0.0,
+      failFinePercent: 0.0,
+    },
+
+    // Command: /donate
+    donate: {
+      enabled: true,
+      cooldown: 900, // 15-minute cooldown
+      footerText: "🩸 Queen Lorina's Vault • A tribute between subjects. Next offering in 15 minutes.",
+    },
+
+    // Command: /rebirth
+    rebirth: {
+      enabled: true,
+      description: "Sacrifice your accumulated Souls to ascend in Her Majesty's favor.",
+      baseCost: 1000000,   // Rebirth 1 = 1,000,000 Souls
+      costMultiplier: 10,  // Multiplies by 10x per level
+      keepInventory: true,
+      rebirthAtkBonusPerLevel: 0.15, // +15% ATK boost per rebirth level
+      rebirthDefBonusPerLevel: 0.15, // +15% DEF boost per rebirth level
+      unlocksPerLevel: {
+        1: "Unlocked /shop (Rebirth items) & Jabberwock Hunt",
+        3: "Unlocked /craft (Blacksmithing)",
+        5: "Unlocked /transmog & Outer God Raids",
+        8: "Unlocked Crown of the Red King",
+      },
+    },
+
+    // Command: /work
+    work: {
+      enabled: true,
+      cooldown: 180, // 3-minute cooldown
+      payoutMin: 100,
+      payoutMax: 500,
+      jobs: [
+        "🧹 Cleaning the Royal Throne Room",
+        "🫖 Brewing Black Tea for Queen Lorina",
+        "🪓 Executioner's Guard Duty",
+        "📜 Transcribing Her Majesty's Decrees",
+        "🥀 Tending to the Crimson Rose Gardens",
+        "🗝️ Polishing the Keys to the Library of Babel",
+      ],
+    },
+
+    // Command: /crime
+    crime: {
+      enabled: true,
+      cooldown: 600, // 10 minutes
+      successRate: 0.60,
+      payoutMin: 1000,
+      payoutMax: 5000,
+      fineMin: 500,
+      fineMax: 2000,
+      scenarios: [
+        { success: "You raided a sleeping Jabberwock's hoard!", fail: "The Jabberwock woke up and scorched your wallet!" },
+        { success: "You stole raw gemstones from the Walrus & Carpenter!", fail: "The Oyster guards beat you up!" },
+        { success: "You pickpocketed a Red Sentinel in the court!", fail: "Queen Lorina fined you on the spot!" },
+      ],
+    },
+
+    // Command: /money-reset
+    moneyReset: {
+      creatorOnly: true,
+    },
+  },
+
+  // ----------------------------------------
+  // 4. AUTHORITARIAN QUEEN LORINA DIALOGUE
+  // ----------------------------------------
+  messages: {
+    noPermission: "🩸 *Off with your head!* You lack the royal lineage or authority to execute this command.",
+    cooldownActive: "⏳ Silence, peasant! Restraint is required in Her Majesty's presence. Wait **{time}** before petitioning court again.",
+    errorOccurred: "🥀 A disturbance has upset the Court of Hearts. Her Majesty demands this anomaly be rectified immediately.",
+    missingPermissions: "👑 Queen Lorina demands appropriate server privileges to enforce her absolute rule.",
+    commandDisabled: "📜 This command has been forbidden and sealed by royal decree.",
+    maintenanceMode: "🍷 Her Majesty is holding private audience in the inner sanctum. The bot is undergoing royal maintenance.",
+  },
+
+  // ----------------------------------------
+  // 5. EXTENDED GAMBLING SUITE
+  // ----------------------------------------
+  gambling: {
+    // Command: /bet (High-Low)
+    bet: {
+      enabled: true,
+      description: "Wager your collected Souls in high-low card draws!",
+      highLow: {
+        enabled: true,
+        startingMultiplier: 1.0,
+        multiplierIncrement: 0.3,
+        buttons: {
+          higherLabel: "📈 Higher",
+          lowerLabel: "📉 Lower",
+          cashoutLabel: "💰 Cash Out Souls",
+        },
+      },
+    },
+
+    // Command: /blackjack
+    blackjack: {
+      enabled: true,
+      description: "Play classic 21 against Queen Lorina's Royal Dealer.",
+      payoutMultiplier: 2.0,
+      blackjackPayoutMultiplier: 2.5,
+    },
+
+    // Command: /slots
+    slots: {
+      enabled: true,
+      description: "Spin the Royal Casino Slot Machine!",
+      symbols: ["👑", "🩸", "🗡️", "🍷", "🪓", "💀"],
+      payouts: {
+        threeCrowns: 50,  // 3x 👑 = 50x Wager
+        threeSouls: 20,   // 3x 🩸 = 20x Wager
+        threeBlades: 10,  // 3x 🗡️ = 10x Wager
+        anyThreeMatch: 5, // 3x Any = 5x Wager
+        anyTwoMatch: 2,   // 2x Any = 2x Wager
+      },
+    },
+
+    // Command: /roulette
+    roulette: {
+      enabled: true,
+      description: "Spin the Royal Crimson Roulette Wheel!",
+      payouts: {
+        singleNumber: 36, // Exact number (0-36)
+        color: 2,         // Red or Black
+        evenOdd: 2,       // Even or Odd
+        highLow: 2,       // 1-18 or 19-36
+      },
+    },
+
+    // Command: /coinflip
+    coinflip: {
+      enabled: true,
+      description: "Flip a royal golden coin (Heads or Tails).",
+      winMultiplier: 1.95, // 1.95x payout on win
+    },
+
+    // Command: /dice
+    dice: {
+      enabled: true,
+      description: "Roll dice against the royal court high roller.",
+      winMultiplier: 2.0,
+    },
+
+    // Command: /wheel (Wheel of Fortune / Fortune Spin)
+    wheel: {
+      enabled: true,
+      description: "Spin Queen Lorina's Wheel of Fortune for massive multipliers or sudden penalties!",
+      cooldown: 1800, // 30 minutes
+      segments: [
+        { label: "💀 Beheaded (Lose 50% Bet)", multiplier: -0.5 },
+        { label: "🥀 Rotten Apple (0x)", multiplier: 0.0 },
+        { label: "🍵 Tea Time (1.5x)", multiplier: 1.5 },
+        { label: "🗡️ Royal Guard (2x)", multiplier: 2.0 },
+        { label: "🍷 Court Feast (5x)", multiplier: 5.0 },
+        { label: "👑 Queen's Favor Jackpot (20x)", multiplier: 20.0 },
+      ],
+    },
+
+    // Command: /jackpot (Server-Wide Community Pot)
+    jackpot: {
+      enabled: true,
+      description: "Contribute Souls to the server-wide jackpot pool. One lucky subject wins it all every 24h!",
+      ticketCost: 5000,
+      maxTicketsPerUser: 100,
+      drawIntervalHours: 24,
+    },
+  },
+
+  // ----------------------------------------
+  // 6. EXPANDED EQUIPMENT, INVENTORY & CRAFTING
+  // ----------------------------------------
+  inventorySystem: {
+    // Advanced Inventory Capacity & Loadout Slots
+    maxDefaultCapacity: 20, // Max item slots before expansion
+    expansionCostBase: 50000, // Souls cost to upgrade capacity (+5 slots)
+    
+    // Command: /equip & /unequip
+    loadoutSlots: {
+      weapon: { name: "⚔️ Main Weapon", allowedType: "weapon" },
+      offhand: { name: "🛡️ Off-Hand / Shield", allowedType: "shield" },
+      armor: { name: "👗 Body Armor", allowedType: "armor" },
+      accessory: { name: "💍 Royal Ring / Charm", allowedType: "accessory" },
+      godRelic: { name: "👑 God Artifact", allowedType: "god_artifact" },
+    },
+
+    // Command: /transmog (Cosmetic Skins without altering stats)
+    transmog: {
+      enabled: true,
+      description: "Apply the visual appearance of any owned item onto your current equipped gear.",
+      costPerTransmog: 10000,
+    },
+
+    // Command: /craft (Blacksmithing / Alchemy Recipe System)
+    crafting: {
+      enabled: true,
+      description: "Combine monster materials and raw items to forge elite weapons and artifacts.",
+      recipes: [
+        {
+          resultItemId: "vorpal_blade",
+          name: "🗡️ Vorpal Sword",
+          requiredMaterials: [
+            { itemId: "andor_sword", count: 1 },
+            { itemId: "jabberwock_scale_mat", count: 3 },
+          ],
+          craftingFee: 50000,
+        },
+        {
+          id: "elixir_of_madness",
+          resultItemId: "elixir_of_madness",
+          name: "🧪 Elixir of Cosmic Madness",
+          requiredMaterials: [
+            { itemId: "senka_leaf", count: 5 },
+            { itemId: "cthulhu_essence", count: 1 },
+          ],
+          craftingFee: 250000,
+        },
+      ],
+    },
+  },
+
+  // ----------------------------------------
+  // 7. ACCURATE BLACK SOULS 1 & 2 ITEM SHOP
+  // ----------------------------------------
+  items: {
+    // Command: /consume
+    consume: {
+      enabled: true,
+      description: "Consume a relic, item, or potion from your inventory to gain Her Majesty's blessing.",
+    },
+
+    // Command: /shop (Requires Rebirth 2+)
+    shop: {
+      enabled: true,
+      title: "🏰 Queen Lorina's Royal Treasury",
+      description: "*'Offer your Souls, subject, and feast your eyes upon the finest artifacts from the fairytale abyss...'*",
+      requiredRebirthLevel: 2,
+      items: [
+        // ==================================
+        // REBIRTH 0: COMMON FAIRYTALE RELICS
+        // ==================================
+        {
+          id: "herb_flask",
+          name: "🧪 Herb Flask",
+          price: 2500,
+          type: "consumable",
+          buff: { hpRestore: 100 },
+          requiredRebirth: 0,
+          description: "Restores 50% HP in battle. Bitter healing alchemy distilled in Vinheim.",
+        },
+        {
+          id: "dung_pie",
+          name: "💩 Dung Pie",
+          price: 1500,
+          type: "consumable",
+          buff: { poisonEnemy: true, poisonDamagePerTurn: 50 },
+          requiredRebirth: 0,
+          description: "Foul thrown projectile that poisons target enemies for 50 dmg/turn.",
+        },
+        {
+          id: "andor_sword",
+          name: "⚔️ Knight's Sword of Andor",
+          price: 25000,
+          type: "weapon",
+          stats: { atk: 25, def: 10 },
+          requiredRebirth: 0,
+          description: "Standard issue blade of Andor's royal sentinels. Grants +25 ATK and +10 DEF.",
+        },
+        {
+          id: "senka_leaf",
+          name: "🍃 Senka Leaf",
+          price: 10000,
+          type: "consumable",
+          buff: { mpRestore: 50 },
+          requiredRebirth: 0,
+          description: "Fragrant leaf that calms the mind and restores 50 MP.",
+        },
+
+        // ==================================
+        // REBIRTH 1-2: MID-TIER BLACK SOULS ARTIFACTS
+        // ==================================
+        {
+          id: "erins_remedy",
+          name: "🍄 Erin's Remedy",
+          price: 75000,
+          type: "consumable",
+          buff: { fullHeal: true, atkBoost: 1.2, durationTurns: 3 },
+          requiredRebirth: 1,
+          description: "Secret concoction crafted by Softy Erin. Fully restores HP and boosts ATK by 20% for 3 turns.",
+        },
+        {
+          id: "vorpal_blade",
+          name: "🗡️ Vorpal Sword",
+          price: 250000,
+          type: "weapon",
+          stats: { atk: 65, critRate: 0.15 },
+          requiredRebirth: 2,
+          description: "Iconic keen blade from Wonderland. *Snicker-snack!* Grants +65 ATK and +15% Crit Chance.",
+        },
+        {
+          id: "alices_red_dress",
+          name: "👗 Alice's Dress",
+          price: 500000,
+          type: "armor",
+          stats: { maxHp: 200, def: 45 },
+          requiredRebirth: 2,
+          description: "Crimson-stained dress worn by Alice. Grants +200 Max HP and +45 DEF.",
+        },
+        {
+          id: "cheshire_lantern",
+          name: "🏮 Cheshire Cat's Lantern",
+          price: 350000,
+          type: "accessory",
+          stats: { evasion: 0.15, magicAtk: 40 },
+          requiredRebirth: 2,
+          description: "Mystical light carried by the grinning Cheshire Cat. Grants +15% Evasion and +40 Magic Power.",
+        },
+
+        // ==================================
+        // REBIRTH 3-4: HIGH-TIER BLACK SOULS 2 WEAPONS & ARMOR
+        // ==================================
+        {
+          id: "jabberwock_scale",
+          name: "🐉 Jabberwock Scale Armor",
+          price: 1500000,
+          type: "armor",
+          stats: { def: 110, damageReduction: 0.15 },
+          requiredRebirth: 3,
+          description: "Forged from the hide of the Jabberwock. Grants +110 DEF and 15% Damage Reduction.",
+        },
+        {
+          id: "red_hood_cleaver",
+          name: "🪓 Red Hood's Cleaver",
+          price: 3000000,
+          type: "weapon",
+          stats: { atk: 140, lifesteal: 0.12 },
+          requiredRebirth: 4,
+          description: "Heavy bloodstained axe of Red Hood. Grants +140 ATK and heals 12% of damage dealt.",
+        },
+        {
+          id: "humpty_dumpty_shield",
+          name: "🛡️ Humpty Dumpty's Greatshield",
+          price: 2500000,
+          type: "shield",
+          stats: { def: 180, reflectDamage: 0.10 },
+          requiredRebirth: 4,
+          description: "Massive eggshell barrier. Grants +180 DEF and reflects 10% incoming damage.",
+        },
+
+        // ==================================
+        // REBIRTH 5-6: TOP TIER OUTER GOD RELICS
+        // ==================================
+        {
+          id: "black_fairy_ring",
+          name: "💍 Band of the Black Fairy",
+          price: 15000000,
+          type: "accessory",
+          stats: { atk: 220, def: 140, critRate: 0.25 },
+          requiredRebirth: 5,
+          description: "Twisted ring of the Black Fairy. Grants +220 ATK, +140 DEF, and +25% Crit Rate.",
+        },
+        {
+          id: "bandersnatch_claws",
+          name: "🐾 Claws of the Bandersnatch",
+          price: 25000000,
+          type: "weapon",
+          stats: { atk: 310, doubleAttackChance: 0.30 },
+          requiredRebirth: 6,
+          description: "Savage claws harvested from the Bandersnatch. Grants +310 ATK and a 30% double attack chance.",
+        },
+        {
+          id: "book_of_nod",
+          name: "📖 Grimoire of Nod",
+          price: 50000000,
+          type: "artifact",
+          stats: { magicAtk: 450, maxMp: 500 },
+          requiredRebirth: 6,
+          description: "Forbidden tome containing dark abyssal incantations. Grants +450 Magic ATK.",
+        },
+
+        // ==================================
+        // REBIRTH 8+: GOD TIER / MOST OP ITEM
+        // ==================================
+        {
+          id: "crown_of_the_red_king",
+          name: "👑 Crown of the Red King (Cthulhu's Madness)",
+          pricePercentage: 1.0,
+          minimumPrice: 100000000000000,
+          type: "god_artifact",
+          stats: { maxHp: 5000, atk: 1200, def: 800, lifesteal: 0.25, critRate: 0.50 },
+          requiredRebirth: 8,
+          description: "★ THE ULTIMATE GOD ITEM ★ The supreme crown of absolute madness and cosmic dominion. Costs 100% of your Souls (minimum 100 Trillion). Grants +5000 HP, +1200 ATK, +800 DEF, 25% Lifesteal, and +50% Crit Chance.",
+        },
+      ],
+    },
+
+    // Command: /gacha (Relic Lootbox / Gacha System)
+    gacha: {
+      enabled: true,
+      description: "Pull a mystery fairytale relic crate for Souls! High chance for rare equipment.",
+      costPerPull: 25000,
+      rates: {
+        common: 0.60,    // 60% Common Consumables / Gear
+        rare: 0.30,      // 30% Rare Weapons / Armor
+        epic: 0.08,      // 8% Epic Outer Relics
+        legendary: 0.02, // 2% Legendary / God Items
+      },
+    },
+  },
+
+  // ----------------------------------------
+  // 8. ADVANCED PROFILE & CHARACTER CARDS
+  // ----------------------------------------
+  profiles: {
+    // Command: /profile (Redesigned Rich Embed Showcase)
+    profileEmbed: {
+      enabled: true,
+      description: "Display a subject's complete royal file, equipped gear, titles, and stats.",
+      customizationOptions: {
+        titles: [
+          { id: "peasant", name: "🧱 Lowly Peasant", condition: "Default" },
+          { id: "slayer", name: "🗡️ Abyssal Beast Slayer", condition: "Defeat 50 Monsters" },
+          { id: "high_roller", name: "🍷 Court High Roller", condition: "Win 1,000,000 Souls in Gambling" },
+          { id: "hand_of_queen", name: "👑 Hand of Her Majesty", condition: "Reach Rebirth Level 5" },
+          { id: "outer_god", name: "🐙 Cosmic Sovereign", condition: "Own Crown of the Red King" },
+        ],
+        badgeShowcase: true, // Shows badges earned through achievements
+        customBioEnabled: true, // Command: /set-bio <text>
+      },
+    },
+
+    // Command: /market (Player-to-Player Auction House / Trading)
+    marketplace: {
+      enabled: true,
+      description: "Trade or sell rare items to other server subjects for Souls.",
+      taxRate: 0.05, // 5% royal court tax on successful marketplace sales
+      maxActiveListingsPerUser: 5,
+    },
+  },
+
+  // ----------------------------------------
+  // 9. PVE COMBAT & QUESTING SYSTEM
+  // ----------------------------------------
+  combat: {
+    // Command: /fight
+    pve: {
+      enabled: true,
+      description: "Enter the abyss and fight nightmare monsters from Black Souls 1 & 2!",
+      playerBaseStats: {
+        hp: 200,
+        atk: 20,
+        def: 5,
+      },
+      monsters: [
+        {
+          id: "bandersnatch",
+          name: "🐺 Frantic Bandersnatch",
+          hp: 150,
+          atk: 18,
+          rewardCoins: 1500,
+          rewardXp: 50,
+          location: "Gloomdross Forest",
+          dropMaterials: [{ id: "bandersnatch_claw_mat", chance: 0.40 }],
+        },
+        {
+          id: "jabberwock",
+          name: "🐉 Jabberwock",
+          hp: 500,
+          atk: 45,
+          rewardCoins: 12000,
+          rewardXp: 250,
+          location: "Library of Babel",
+          minRebirthRequired: 1,
+          dropMaterials: [{ id: "jabberwock_scale_mat", chance: 0.25 }],
+        },
+        {
+          id: "queen_lorina",
+          name: "👑 Queen Lorina, Sovereign of Hearts",
+          hp: 1200,
+          atk: 85,
+          rewardCoins: 100000,
+          rewardXp: 1000,
+          location: "Heart Castle Royal Court",
+          minRebirthRequired: 3,
+        },
+        {
+          id: "cthulhu_god",
+          name: "🐙 Cthulhu, The Star-Spawned Outer God",
+          hp: 5000,
+          atk: 250,
+          rewardCoins: 1000000,
+          rewardXp: 5000,
+          location: "The Depths of R'lyeh",
+          minRebirthRequired: 5,
+          dropMaterials: [{ id: "cthulhu_essence", chance: 0.10 }],
+        },
+      ],
+      buttons: {
+        attackLabel: "⚔️ Strike",
+        defendLabel: "🛡️ Guard",
+        itemLabel: "🎒 Use Relic",
+        fleeLabel: "🏃 Flee Court",
+      },
+    },
+
+    // Command: /quest
+    quest: {
+      enabled: true,
+      description: "Send your character on passive abyssal expeditions for Souls and loot.",
+      cooldown: 14400, // 4 hours
+      rewardMin: 15000,
+      rewardMax: 60000,
+      rareDropChance: 0.10,
+    },
+
+    // Command: /boss-raid (Server World Boss Event)
+    bossRaid: {
+      enabled: true,
+      description: "Join forces with all server subjects to defeat colossal World Bosses for massive Soul payouts!",
+      bosses: [
+        {
+          name: "🐉 Ancient Jabberwock World Boss",
+          totalHp: 1000000,
+          rewardPool: 50000000, // 50 Million Souls distributed proportionally by damage
+        },
+      ],
+    },
+
+    // --------------------------------------
+    // PVP TURN-BASED DUEL SYSTEM (/duel)
+    // --------------------------------------
+    // Command: /duel @player [wager]
+    pvp: {
+      enabled: true,
+      description: "Challenge another peasant to a turn-based duel for Souls in front of the throne!",
+      turnTimeoutSeconds: 45,
+      allowWagers: true,
+      maxWager: 10000000,
+      buttons: {
+        attackLabel: "⚔️ Strike",
+        defendLabel: "🛡️ Defend",
+        specialLabel: "⚡ Royal Skill",
+        surrenderLabel: "🏳️ Yield",
+      },
+    },
+  },
+
+  // ----------------------------------------
+  // 10. PROFILE, STATS & LEADERBOARDS
+  // ----------------------------------------
+  stats: {
+    // Command: /my-stats
+    myStats: {
+      enabled: true,
+      description: "View your standing, Souls balance, and combat record in Her Majesty's court.",
+    },
+
+    // Command: /inventory
+    inventory: {
+      enabled: true,
+      description: "Check your current items, weapons, and equipped gear.",
+    },
+
+    // Command: /leaderboard
+    leaderboard: {
+      enabled: true,
+      displayCount: 45,
+      pages: 15,
+    },
+
+    // Command: /achievements
+    achievements: {
+      enabled: true,
+      description: "Track your royal milestones, monster slays, and gambling wins for bonus rewards.",
+    },
+  },
+
+  // ----------------------------------------
+  // 11. SOCIAL & FAMILY INTERACTIONS
+  // ----------------------------------------
+  family: {
+    enabled: true,
+    add: { description: "Form a sworn alliance or lineage (requires confirmation)" },
+    remove: { description: "Sever a sworn lineage" },
+    interactions: { description: "Inspect sworn relationships of yourself or another subject" },
+  },
+
+  // ----------------------------------------
+  // 12. ADMIN COMMANDS
+  // ----------------------------------------
+  admin: {
+    // Command: /talk
+    talk: {
+      adminOnly: true,
+      description: "[Admin] Speak directly through Her Majesty Queen Lorina in this channel.",
+    },
+  },
+};
