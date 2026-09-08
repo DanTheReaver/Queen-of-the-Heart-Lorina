@@ -2,7 +2,7 @@
 // QUEEN LORINA BOT CONFIGURATION FILE
 // ==========================================
 
-export const botConfig = {
+const botConfig = {
   // ----------------------------------------
   // 1. BOT PRESENCE & STATUS
   // ----------------------------------------
@@ -62,24 +62,12 @@ export const botConfig = {
       enabled: true,
       contributionPercentage: 5,
     },
-    slots: {
-      enabled: true,
-    },
-    blackjack: {
-      enabled: true,
-    },
-    roulette: {
-      enabled: true,
-    },
-    wheel: {
-      enabled: true,
-    },
-    coinflip: {
-      enabled: true,
-    },
-    dice: {
-      enabled: true,
-    },
+    slots: { enabled: true },
+    blackjack: { enabled: true },
+    roulette: { enabled: true },
+    wheel: { enabled: true },
+    coinflip: { enabled: true },
+    dice: { enabled: true },
   },
 
   // ----------------------------------------
@@ -88,9 +76,7 @@ export const botConfig = {
   rpg: {
     enabled: true,
     maxLevel: 100,
-    pvp: {
-      enabled: true,
-    },
+    pvp: { enabled: true },
     bosses: [
       {
         id: "jabberwock",
@@ -121,19 +107,13 @@ export const botConfig = {
     costMultiplier: 2.5,
     maxRebirths: 10,
   },
-  jobs: {
-    enabled: true,
-  },
+  jobs: { enabled: true },
 
   // ----------------------------------------
   // 7. INVENTORY, CRAFTING & EQUIPMENT
   // ----------------------------------------
-  inventory: {
-    maxSlots: 50,
-  },
-  crafting: {
-    enabled: true,
-  },
+  inventory: { maxSlots: 50 },
+  crafting: { enabled: true },
 
   // ----------------------------------------
   // 8. GACHA SYSTEM
@@ -177,4 +157,5 @@ export const botConfig = {
   },
 };
 
+export { botConfig };
 export default botConfig;
