@@ -1,177 +1,651 @@
-/**
- * Queen of the Heart Lorina - Core Bot Configuration
- * Matches application.js expectations, including shop hierarchy, validateConfig, and Souls economy.
- */
+import { logger } from '../utils/logger.js';
 
 export const botConfig = {
-  name: 'Queen of the Heart Lorina',
-  version: '3.0.0',
-  prefix: '!',
+  // =========================
+  // BOT PRESENCE (what users see under the bot name)
+  // =========================
+  // `status` options:
+  // - "online"    = green dot
+  // - "idle"      = yellow moon
+  // - "dnd"       = red do-not-disturb
+  // - "invisible" = appears offline
+  presence: {
+    // Current online state shown on Discord.
+    status: "online",
 
-  // System Settings
-  environment: process.env.NODE_ENV || 'production',
-  debug: process.env.DEBUG === 'true',
-
-  // API Credentials
-  discord: {
-    token: process.env.DISCORD_TOKEN || process.env.TOKEN,
-    clientId: process.env.CLIENT_ID,
-    guildId: process.env.GUILD_ID,
+    // Activity lines shown under the bot name.
+    // `type` number mapping from Discord:
+    // 0 = Playing
+    // 1 = Streaming
+    // 2 = Listening
+    // 3 = Watching
+    // 4 = Custom
+    // 5 = Competing
+    activities: [
+      {
+        name: "Custom Status", // required by Discord API, not shown in the client
+        state: "stalking",     // this is what people actually see
+        type: 4,               // Custom
+      },
+    ],
   },
 
-  // Visual Theme & Persona
-  theme: {
-    color: '#800020',
-    embedFooter: 'Queen of the Heart Lorina • All Hearts Belong to the Queen',
+  // =========================
+  // COMMAND BEHAVIOR
+  // =========================
+  commands: {
+    // Bot owner user IDs (comma-separated in OWNER_IDS env var).
+    // Owners can access owner/admin-level bot commands.
+    owners: process.env.OWNER_IDS?.split(",").map((id) => id.trim()).filter(Boolean) || [],
+
+    // Default wait time between command uses (in seconds).
+    defaultCooldown: 3,
+
+    // If true, old commands are removed before re-registering.
+    deleteCommands: false,
+
+    // Optional server ID retained for tutorial compatibility; not used for command registration.
+    testGuildId: process.env.TEST_GUILD_ID,
+
+    // When true (or MAINTENANCE_MODE=true), only bot owners can run commands.
+    maintenanceMode: process.env.MAINTENANCE_MODE === "true",
+
+    // Command prefix for text-based commands (e.g., "!" for "!ping").
+    // Supports both slash commands and prefix commands.
+    prefix: process.env.PREFIX || "!",
   },
 
-  // Economy & Rebirth Progression (Souls)
+  // =========================
+  // APPLICATIONS SYSTEM
+  // =========================
+  applications: {
+    // Default questions shown when someone fills out an application.
+    defaultQuestions: [
+      { question: "What is your name?", required: true },
+      { question: "How old are you?", required: true },
+      { question: "Why do you want to join?", required: true },
+    ],
+
+    // Embed colors by application status.
+    statusColors: {
+      pending: "#FFA500",
+      approved: "#00FF00",
+      denied: "#FF0000",
+    },
+
+    // How long users must wait before submitting another application (hours).
+    applicationCooldown: 24,
+
+    // Auto-delete denied applications after this many days.
+    deleteDeniedAfter: 7,
+
+    // Auto-delete approved applications after this many days.
+    deleteApprovedAfter: 30,
+
+    // Role IDs allowed to manage applications.
+    managerRoles: [], // Will be populated from environment or database
+  },
+
+  // =========================
+  // EMBED COLORS & BRANDING
+  // =========================
+  // IMPORTANT: This is the SINGLE SOURCE OF TRUTH for all bot colors
+  embeds: {
+    colors: {
+      // Main brand colors.
+      primary: "#336699",
+      secondary: "#2F3136",
+
+      // Standard status colors for success/error/warning/info messages.
+      success: "#57F287",
+      error: "#ED4245",
+      warning: "#FEE75C",
+      info: "#3498DB",
+
+      // Neutral utility colors.
+      light: "#FFFFFF",
+      dark: "#202225",
+      gray: "#99AAB5",
+
+      // Discord-style palette shortcuts.
+      blurple: "#5865F2",
+      green: "#57F287",
+      yellow: "#FEE75C",
+      fuchsia: "#EB459E",
+      red: "#ED4245",
+      black: "#000000",
+
+      // Feature-specific colors.
+      giveaway: {
+        active: "#57F287",
+        ended: "#ED4245",
+      },
+      ticket: {
+        open: "#57F287",
+        claimed: "#FAA61A",
+        closed: "#ED4245",
+        pending: "#99AAB5",
+      },
+      economy: "#F1C40F",
+      birthday: "#E91E63",
+      moderation: "#9B59B6",
+
+      // Ticket priority color mapping.
+      priority: {
+        none: "#95A5A6",
+        low: "#3498db",
+        medium: "#2ecc71",
+        high: "#f1c40f",
+        urgent: "#e74c3c",
+      },
+    },
+    footer: {
+      // Default footer text used in bot embeds.
+      text: "Titan Bot",
+      // Footer icon URL (null = no icon).
+      icon: null,
+    },
+    // Default thumbnail URL for embeds (null = no thumbnail).
+    thumbnail: null,
+    author: {
+      // Optional default embed author block.
+      name: null,
+      icon: null,
+      url: null,
+    },
+  },
+
+  // =========================
+  // ECONOMY SETTINGS
+  // =========================
   economy: {
-    currencyName: 'Souls',
-    currencySymbol: '🩸',
-    startingBalance: 500,
-    dailyReward: 300,
-    taxRate: 0.05,
-    maxRebirthLevel: 10,
-    allowStealing: false,
+    currency: {
+      // Currency display name.
+      name: "coins",
+      // Plural display name.
+      namePlural: "coins",
+      // Currency symbol shown in balances.
+      symbol: "$",
+    },
+
+    // Starting balance for new users.
+    startingBalance: 0,
+
+    // Maximum bank amount before upgrades (if upgrades are used).
+    baseBankCapacity: 100000,
+
+    // Daily reward amount.
+    dailyAmount: 100,
+
+    // Work command random payout range.
+    workMin: 10,
+    workMax: 100,
+
+    // Beg command random payout range.
+    begMin: 5,
+    begMax: 50,
+
+    // Command cooldowns (milliseconds).
+    cooldowns: {
+      daily: 24 * 60 * 60 * 1000,
+      work: 60 * 60 * 1000,
+      crime: 2 * 60 * 60 * 1000,
+      rob: 4 * 60 * 60 * 1000,
+    },
+
+    // Chance to succeed when robbing (0.4 = 40%).
+    robSuccessRate: 0.4,
+
+    // Jail time after failed rob (milliseconds).
+    // 3600000 = 1 hour.
+    robFailJailTime: 3600000,
   },
 
-  // Gambling Suite
-  gambling: {
-    minBet: 50,
-    maxBet: 500000,
-    coinflipMultiplier: 2.0,
-    slotsMultiplier: 5.0,
-    blackjackPayout: 2.5,
-  },
-
-  // Feature Flags
-  features: {
-    enableShop: true,
-    enableEconomy: true,
-    enableLogging: true,
-    music: true,
-  },
-
-  // Nested Shop Object expected by application.js line 29 (...botConfig.shop)
+  // =========================
+  // SHOP SETTINGS
+  // =========================
+  // Add shop defaults here when needed.
   shop: {
-    enabled: true,
-    currencySymbol: '🩸',
-    taxRate: 0.05,
-    categories: [
-      { id: 'consumables', name: 'Consumables & Alchemy' },
-      { id: 'weapons', name: 'Black Souls Weapons' },
-      { id: 'armor', name: 'Gothic Armor & Gear' },
-      { id: 'artifacts', name: 'Relics & God-Tier Artifacts' },
-    ],
-    items: [
-      // Consumables
-      {
-        id: 'herb_flask',
-        name: 'Herb Flask',
-        price: 50,
-        category: 'consumables',
-        rebirthRequired: 0,
-        description: 'Restores 60 HP during combat.',
-        stats: { healHp: 60 },
+
+  },
+
+  // =========================
+  // TICKET SYSTEM
+  // =========================
+  tickets: {
+    // Category ID where new tickets are created (null = no forced category).
+    defaultCategory: null,
+
+    // Role IDs allowed to manage/support tickets.
+    supportRoles: [],
+
+    // Priority options users/staff can assign.
+    priorities: {
+      none: {
+        emoji: "⚪",
+        color: "#95A5A6",
+        label: "None",
       },
-      {
-        id: 'dung_pie',
-        name: 'Dung Pie',
-        price: 120,
-        category: 'consumables',
-        rebirthRequired: 0,
-        description: 'Throws foul toxic bile dealing immediate passive damage.',
-        stats: { poisonDamage: 40 },
+      low: {
+        emoji: "🟢",
+        color: "#2ECC71",
+        label: "Low",
       },
-      {
-        id: 'soul_elixir',
-        name: 'Elixir of the Lost Souls',
-        price: 600,
-        category: 'consumables',
-        rebirthRequired: 1,
-        description: 'Increases attack power by 30 for 3 encounters.',
-        stats: { tempAttack: 30, durationBattles: 3 },
+      medium: {
+        emoji: "🟡",
+        color: "#F1C40F",
+        label: "Medium",
       },
-      // Weapons
-      {
-        id: 'vorpal_sword',
-        name: 'Vorpal Sword',
-        price: 1500,
-        category: 'weapons',
-        rebirthRequired: 0,
-        description: 'Snicker-snack! High critical strike lethality.',
-        stats: { attack: 45, critChance: 0.15 },
+      high: {
+        emoji: "🔴",
+        color: "#E74C3C",
+        label: "High",
       },
-      {
-        id: 'red_hood_cleaver',
-        name: "Red Hood's Cleaver",
-        price: 6500,
-        category: 'weapons',
-        rebirthRequired: 2,
-        description: 'A bloodstained heavy cleaver that rends flesh.',
-        stats: { attack: 110, lifesteal: 0.08 },
+      urgent: {
+        emoji: "🚨",
+        color: "#E91E63",
+        label: "Urgent",
       },
-      {
-        id: 'jabberwock_blade',
-        name: 'Jabberwock Greatsword',
-        price: 25000,
-        category: 'weapons',
-        rebirthRequired: 4,
-        description: 'Forged from the severed claws of the nightmare beast.',
-        stats: { attack: 280, defense: 20 },
+    },
+
+    // Default priority for new tickets.
+    defaultPriority: "none",
+
+    // Category ID where closed tickets are archived.
+    archiveCategory: null,
+
+    // Channel ID where ticket logs are sent.
+    logChannel: null,
+  },
+
+  // =========================
+  // GIVEAWAY SETTINGS
+  // =========================
+  giveaways: {
+    // Default giveaway duration in milliseconds.
+    // 86400000 = 24 hours.
+    defaultDuration: 86400000,
+
+    // Allowed winner count range.
+    minimumWinners: 1,
+    maximumWinners: 10,
+
+    // Allowed giveaway duration range in milliseconds.
+    // 300000 = 5 minutes.
+    minimumDuration: 300000,
+    // 2592000000 = 30 days.
+    maximumDuration: 2592000000,
+
+    // Role IDs allowed to host giveaways.
+    allowedRoles: [],
+
+    // Role IDs that bypass giveaway restrictions.
+    bypassRoles: [],
+  },
+
+  // =========================
+  // BIRTHDAY SETTINGS
+  // =========================
+  birthday: {
+    // Role ID given to users on their birthday.
+    defaultRole: null,
+
+    // Channel ID where birthday announcements are posted.
+    announcementChannel: null,
+
+    // Timezone used to calculate birthday dates.
+    timezone: "UTC",
+  },
+
+  // =========================
+  // VERIFICATION SETTINGS
+  // =========================
+  verification: {
+    // Message shown when posting the verification panel.
+    defaultMessage: "Click the button below to verify yourself and gain access to the server!",
+
+    // Text on the verification button.
+    defaultButtonText: "Verify",
+
+    // Automatic verification behavior.
+    autoVerify: {
+      // How automatic verification decides who is auto-approved:
+      // - "none"        = everyone is auto-verified immediately
+      // - "account_age" = account must be older than set days
+      // - "server_size" = auto-verify everyone only in smaller servers
+      defaultCriteria: "none",
+
+      // Days used when `defaultCriteria` is `account_age`.
+      defaultAccountAgeDays: 7,
+
+      // Member count threshold used when `defaultCriteria` is `server_size`.
+      // Example: 1000 means auto-verify if server has fewer than 1000 members.
+      serverSizeThreshold: 1000,
+
+      // Allowed safety limits for account-age requirements.
+      // 1 = minimum day, 365 = maximum days.
+      minAccountAge: 1,
+      maxAccountAge: 365,
+
+      // If true, user receives a DM after verification.
+      sendDMNotification: true,
+
+      // Human-readable descriptions for each criteria mode.
+      criteria: {
+        account_age: "Account must be older than specified days",
+        server_size: "All users if server has less than 1000 members",
+        none: "All users immediately"
+      }
+    },
+
+    // Minimum time between verification attempts (milliseconds).
+    // 5000 = 5 seconds.
+    verificationCooldown: 5000,
+
+    // Maximum failed attempts allowed inside the time window below.
+    maxVerificationAttempts: 3,
+
+    // Time window for counting attempts (milliseconds).
+    // 60000 = 1 minute.
+    attemptWindow: 60000,
+
+    // In-memory safety limits (helps avoid unbounded memory growth).
+    maxCooldownEntries: 10000,
+    maxAttemptEntries: 10000,
+    // Cleanup frequency for cooldown/attempt maps (milliseconds).
+    // 300000 = 5 minutes.
+    cooldownCleanupInterval: 300000,
+    // Maximum metadata payload size for audit entries (bytes).
+    maxAuditMetadataBytes: 4096,
+    // Maximum number of audit entries kept in memory.
+    maxInMemoryAuditEntries: 1000,
+    // If true, log every verification action.
+    logAllVerifications: true,
+    // If true, preserve verification audit history.
+    keepAuditTrail: true,
+  },
+
+  // =========================
+  // WELCOME / GOODBYE MESSAGES
+  // =========================
+  welcome: {
+    // Welcome template posted when a user joins.
+    // Placeholders: {user}, {server}, {memberCount}
+    defaultWelcomeMessage:
+      "Welcome {user} to {server}! We now have {memberCount} members!",
+    // Goodbye template posted when a user leaves.
+    // Placeholders: {user}, {memberCount}
+    defaultGoodbyeMessage:
+      "{user} has left the server. We now have {memberCount} members.",
+    // Channel ID for welcome messages.
+    defaultWelcomeChannel: null,
+    // Channel ID for goodbye messages.
+    defaultGoodbyeChannel: null,
+  },
+
+  // =========================
+  // COUNTER CHANNELS
+  // =========================
+  counters: {
+    defaults: {
+      // Default naming/description templates for counter entries.
+      name: "{name} Counter",
+      description: "Server {name} counter",
+      // Channel type used for counters (typically "voice").
+      type: "voice",
+      // Channel name format. `{count}` is replaced automatically.
+      channelName: "{name}-{count}",
+    },
+    permissions: {
+      // Default denied permissions for the counter channel.
+      deny: ["VIEW_CHANNEL"],
+      // Default allowed permissions for the counter channel.
+      allow: ["VIEW_CHANNEL", "CONNECT", "SPEAK"],
+    },
+    messages: {
+      // Default response messages for counter actions.
+      created: "✅ Created counter **{name}**",
+      deleted: "🗑️ Deleted counter **{name}**",
+      updated: "🔄 Updated counter **{name}**",
+    },
+    types: {
+      // Built-in counter types and how each count is calculated.
+      members: {
+        name: "👥 Members",
+        description: "Total members in the server",
+        getCount: (guild) => guild.memberCount.toString(),
       },
-      // Armor
-      {
-        id: 'gothic_cloak',
-        name: 'Tattered Gothic Cloak',
-        price: 400,
-        category: 'armor',
-        rebirthRequired: 0,
-        description: 'Protects against minor skirmishes.',
-        stats: { defense: 15, maxHp: 30 },
+      bots: {
+        name: "🤖 Bots",
+        description: "Total bot accounts in the server",
+        getCount: (guild) =>
+          guild.members.cache.filter((m) => m.user.bot).size.toString(),
       },
-      {
-        id: 'executioner_plate',
-        name: "Executioner's Steel Plate",
-        price: 5000,
-        category: 'armor',
-        rebirthRequired: 2,
-        description: 'Heavy dark plate capable of deflecting mortal blows.',
-        stats: { defense: 80, maxHp: 180 },
+      members_only: {
+        name: "👤 Humans",
+        description: "Total human members (non-bots)",
+        getCount: (guild) =>
+          guild.members.cache.filter((m) => !m.user.bot).size.toString(),
       },
-      // Artifacts
-      {
-        id: 'black_fairy_ring',
-        name: 'Black Fairy Ring',
-        price: 75000,
-        category: 'artifacts',
-        rebirthRequired: 5,
-        description: 'Corrupted fairy magic that turns incoming damage into Souls.',
-        stats: { attack: 200, defense: 150, maxHp: 400, soulGainBonus: 0.25 },
-      },
-      {
-        id: 'crown_red_king',
-        name: 'Crown of the Red King',
-        price: 500000,
-        category: 'artifacts',
-        rebirthRequired: 8,
-        description: 'The supreme artifact of absolute dominion.',
-        stats: { attack: 750, defense: 500, maxHp: 1500, lifesteal: 0.15 },
-      },
-    ],
+    },
+  },
+
+  // =========================
+  // GENERIC BOT MESSAGES
+  // =========================
+  messages: {
+    noPermission: "You do not have permission to use this command.",
+    cooldownActive: "Please wait {time} before using this command again.",
+    errorOccurred: "An error occurred while executing this command.",
+    missingPermissions:
+      "I am missing required permissions to perform this action.",
+    commandDisabled: "This command has been disabled.",
+    maintenanceMode: "The bot is currently in maintenance mode.",
+  },
+
+  // =========================
+  // FEATURE TOGGLES
+  // =========================
+  // Set any feature to `false` to disable it globally.
+  features: {
+    // Core systems.
+    economy: true,
+    leveling: true,
+    moderation: true,
+    logging: true,
+    welcome: true,
+
+    // Community engagement systems.
+    tickets: true,
+    giveaways: true,
+    birthday: true,
+    counter: true,
+
+    // Security and self-service systems.
+    verification: true,
+    reactionRoles: true,
+    joinToCreate: true,
+
+    // Utility/quality-of-life modules.
+    voice: true,
+    search: true,
+    tools: true,
+    utility: true,
+    community: true,
+    fun: true,
+    music: true,
   },
 };
 
-/**
- * Validation function expected by application.js import
- */
-export function validateConfig(config = botConfig) {
-  const token = config.discord?.token || process.env.DISCORD_TOKEN || process.env.TOKEN;
-  if (!token) {
-    console.warn('[Config Warning] Missing DISCORD_TOKEN in environment variables.');
+export function validateConfig(config) {
+  const errors = [];
+
+  if (process.env.NODE_ENV !== 'production') {
+    logger.debug('Environment variables check:');
+    logger.debug('DISCORD_TOKEN exists:', !!process.env.DISCORD_TOKEN);
+    logger.debug('TOKEN exists:', !!process.env.TOKEN);
+    logger.debug('CLIENT_ID exists:', !!process.env.CLIENT_ID);
+    logger.debug('GUILD_ID exists:', !!process.env.GUILD_ID);
+    logger.debug('POSTGRES_HOST exists:', !!process.env.POSTGRES_HOST);
+    logger.debug('NODE_ENV:', process.env.NODE_ENV);
   }
-  return true;
+
+  if (!process.env.DISCORD_TOKEN && !process.env.TOKEN) {
+    errors.push("Bot token is required (DISCORD_TOKEN or TOKEN environment variable)");
+  }
+
+  if (!process.env.CLIENT_ID) {
+    errors.push("Client ID is required (CLIENT_ID environment variable)");
+  }
+
+  if (process.env.NODE_ENV === 'production') {
+    // A full connection URL (DATABASE_URL / POSTGRES_URL) satisfies all Postgres
+    // requirements, matching how src/config/database/postgres.js resolves the pool config.
+    const hasConnectionUrl = Boolean(process.env.POSTGRES_URL || process.env.DATABASE_URL);
+
+    if (!hasConnectionUrl) {
+      if (!process.env.POSTGRES_HOST) {
+        errors.push("PostgreSQL connection is required in production (set DATABASE_URL/POSTGRES_URL, or POSTGRES_HOST)");
+      }
+      if (!process.env.POSTGRES_USER) {
+        errors.push("PostgreSQL user is required in production (set DATABASE_URL/POSTGRES_URL, or POSTGRES_USER)");
+      }
+      if (!process.env.POSTGRES_PASSWORD) {
+        errors.push("PostgreSQL password is required in production (set DATABASE_URL/POSTGRES_URL, or POSTGRES_PASSWORD)");
+      }
+    }
+  }
+
+  return errors;
+}
+
+const configErrors = validateConfig(botConfig);
+if (configErrors.length > 0) {
+  logger.error("Bot configuration errors:", configErrors.join("\n"));
+  if (process.env.NODE_ENV === "production") {
+    process.exit(1);
+  }
+}
+
+export const BotConfig = botConfig;
+
+const COMMAND_CATEGORY_FEATURE_MAP = {
+  birthday: "birthday",
+  community: "community",
+  economy: "economy",
+  fun: "fun",
+  giveaway: "giveaways",
+  jointocreate: "joinToCreate",
+  leveling: "leveling",
+  logging: "logging",
+  moderation: "moderation",
+  music: "music",
+  reaction_roles: "reactionRoles",
+  search: "search",
+  serverstats: "counter",
+  ticket: "tickets",
+  tools: "tools",
+  utility: "utility",
+  verification: "verification",
+  welcome: "welcome",
+};
+
+function normalizeCategoryKey(category) {
+  return String(category || "").trim().toLowerCase().replace(/\s+/g, "_");
+}
+
+export function getCommandPrefix() {
+  return botConfig.commands?.prefix ?? "!";
+}
+
+export function getBotOwners() {
+  return (botConfig.commands?.owners ?? [])
+    .map((id) => String(id).trim())
+    .filter(Boolean);
+}
+
+export function isBotOwner(userId) {
+  if (!userId) {
+    return false;
+  }
+
+  return getBotOwners().includes(String(userId));
+}
+
+export function isMaintenanceMode() {
+  return botConfig.commands?.maintenanceMode === true;
+}
+
+export function getBotMessage(key, replacements = {}) {
+  let message = botConfig.messages?.[key] || key;
+
+  for (const [placeholder, value] of Object.entries(replacements)) {
+    message = message.replace(new RegExp(`\\{${placeholder}\\}`, "g"), String(value));
+  }
+
+  return message;
+}
+
+export function isFeatureEnabled(featureKey) {
+  if (!featureKey) {
+    return true;
+  }
+
+  return botConfig.features?.[featureKey] !== false;
+}
+
+export function isCommandCategoryEnabled(category) {
+  const normalized = normalizeCategoryKey(category);
+
+  if (!normalized || normalized === "core") {
+    return true;
+  }
+
+  const featureKey = COMMAND_CATEGORY_FEATURE_MAP[normalized];
+  if (!featureKey) {
+    return true;
+  }
+
+  return isFeatureEnabled(featureKey);
+}
+
+export function getApplicationStatusColor(status) {
+  const colors = botConfig.applications?.statusColors || {};
+  const hex = colors[status];
+  return hex ? getColor(hex) : getColor(status === "approved" ? "success" : status === "denied" ? "error" : "warning");
+}
+
+export function getDefaultApplicationQuestions() {
+  return (botConfig.applications?.defaultQuestions || []).map((entry) =>
+    typeof entry === "string" ? entry : entry.question,
+  ).filter(Boolean);
+}
+
+export function getColor(path, fallback = "#99AAB5") {
+  
+  if (typeof path === "number") return path;
+  if (typeof path === "string" && path.startsWith("#")) {
+    
+    return parseInt(path.replace("#", ""), 16);
+  }
+  const result = path
+    .split(".")
+    .reduce(
+      (obj, key) => (obj && obj[key] !== undefined ? obj[key] : fallback),
+      botConfig.embeds.colors,
+    );
+  
+  if (typeof result === "string" && result.startsWith("#")) {
+    return parseInt(result.replace("#", ""), 16);
+  }
+  return result;
+}
+
+export function getRandomColor() {
+  const colors = Object.values(botConfig.embeds.colors).flatMap((color) =>
+    typeof color === "string" ? color : Object.values(color),
+  );
+  return colors[Math.floor(Math.random() * colors.length)];
 }
 
 export default botConfig;
