@@ -157,5 +157,4 @@ export const botConfig = {
   },
 };
 
-export { botConfig };
 export default botConfig;
