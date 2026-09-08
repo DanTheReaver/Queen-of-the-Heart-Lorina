@@ -2,7 +2,7 @@
 // QUEEN LORINA BOT CONFIGURATION FILE
 // ==========================================
 
-const botConfig = {
+export const botConfig = {
   // ----------------------------------------
   // 1. BOT PRESENCE & STATUS
   // ----------------------------------------
