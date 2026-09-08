@@ -1,8 +1,9 @@
+
 // ==========================================
 // QUEEN LORINA BOT CONFIGURATION FILE
 // ==========================================
 
-module.org = { // Standard configuration module export
+module.exports = {
   // ----------------------------------------
   // 1. BOT PRESENCE & STATUS
   // ----------------------------------------
@@ -607,7 +608,7 @@ module.org = { // Standard configuration module export
       allowWagers: true,
       maxWager: 10000000,
       buttons: {
-        attackLabel: "⚔️ Strike",
+        attackLabel: "⚔️ Attack",
         defendLabel: "🛡️ Defend",
         specialLabel: "⚡ Royal Skill",
         surrenderLabel: "🏳️ Yield",
